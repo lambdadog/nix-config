@@ -1,12 +1,9 @@
 ;; -*- lexical-binding: t -*-
 
-(defun lambdadog/load-autoload (path)
-  (load path nil t t))
-
-(dolist (dir load-path)
-  (let ((autoload-globs (mapcar (apply-partially #'concat "*-autoloads")
-				(get-load-suffixes))))
-    (dolist (glob autoload-globs)
-      (let* ((fullglob       (expand-file-name glob dir))
-	     (autoloads      (file-expand-wildcards fullglob t)))
-	(mapcar #'lambdadog/load-autoload autoloads)))))
+(dolist (load-suffix (get-load-suffixes))
+  (dolist (dir load-path)
+    (let* ((glob      (concat "*-autoloads" load-suffix))
+	   (fullglob  (expand-file-name glob dir))
+	   (autoloads (file-expand-wildcards fullglob t)))
+      (dolist (autoload autoloads)
+	(load autoload nil t t)))))
