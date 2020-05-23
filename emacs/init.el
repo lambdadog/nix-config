@@ -24,7 +24,15 @@
     (load file nil t t)))
 
 ;; Load up all of our autoloads, since nix doesn't do that for us
-(load-config "autoload.el")
+;;
+;; We don't need to worry about the other loadable file extensions
+;; because nix always generates autoloads as a .el file, so we can
+;; just pretend they don't exist.
+(dolist (dir load-path)
+  (dolist (autoload (file-expand-wildcards
+		     (expand-file-name "*-autoloads.el" dir)
+		     t))
+    (load autoload nil t t)))
 
 (eval-when-compile
   (setq use-package-always-defer t)
