@@ -1,9 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
-(dolist (load-suffix (get-load-suffixes))
-  (dolist (dir load-path)
-    (let* ((glob      (concat "*-autoloads" load-suffix))
-	   (fullglob  (expand-file-name glob dir))
-	   (autoloads (file-expand-wildcards fullglob t)))
-      (dolist (autoload autoloads)
-	(load autoload nil t t)))))
+(dolist (dir load-path)
+  (dolist (autoload (file-expand-wildcards
+		     (expand-file-name "*-autoloads.el" dir)
+		     t))
+    (load autoload nil t t)))
