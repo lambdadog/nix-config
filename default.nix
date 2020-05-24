@@ -26,6 +26,7 @@ let
 
       # Util
       magit deadgrep use-package hydra
+      ryo-modal
 
       # Zettelkasten
       deft zetteldeft avy ace-window
