@@ -5,7 +5,7 @@
 	     deft-refresh)
   :custom
   (deft-extensions '("org"))
-  (deft-directory "~/zettel")
+  (deft-directory "~/notes/zettel")
   (deft-use-filename-as-title t))
 
 (use-package zetteldeft
@@ -25,6 +25,9 @@
 	     zetteldeft-file-rename
 	     zetteldeft-count-words))
 
+;; Ripped from https://github.com/EFLS/zetteldeft/blob/d4bafb3ea9f506a588744f03d5ec9794efee360d/zetteldeft.el#L682
+;;
+;; TODO: Design a more intelligent layout
 (defhydra lambdadog/zettelkasten-dumb (:exit t)
   "Zettelkasten"
   ("d" deft "deft")

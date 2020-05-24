@@ -16,6 +16,9 @@ let
     packages = ep: with ep; [
       # Theme
       doom-themes
+
+      # QoL
+      dashboard page-break-lines
       
       # Major modes
       nix-mode haskell-mode yaml-mode

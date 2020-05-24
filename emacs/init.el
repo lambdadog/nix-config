@@ -14,6 +14,19 @@
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 
+;; Neuter package.el
+(setq package-enable-at-startup nil)
+
+;; I'm not sure if these are an issue since we don't use ~/.emacs.d,
+;; but it can't hurt to override them just in case they intend to
+;; leave a mess.
+(defun package--ensure-init-file/:override ())
+(advice-add #'package--ensure-init-file :override
+	    #'package--ensure-init-file/:override)
+(defun package--save-selected-packages/:override (&optional _))
+(advice-add #'package--save-selected-packages :override
+	    #'package--save-selected-packages/:override)
+
 ;; Helper functions
 (setq config-home (if load-file-name
 		      (file-name-directory load-file-name)
@@ -39,4 +52,5 @@
   (require 'use-package))
 
 ;;; Config
+(load-config "ui.el")
 (load-config "zettel.el")
