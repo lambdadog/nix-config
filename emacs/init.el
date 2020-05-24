@@ -33,7 +33,7 @@
 		    default-directory))
 
 (defun load-config (path)
-  (let ((file (expand-file-name (concat config-home path))))
+  (let ((file (expand-file-name path config-home)))
     (load file nil t t)))
 
 ;; Load up all of our autoloads, since nix doesn't do that for us
