@@ -29,7 +29,7 @@ let
       ryo-modal
 
       # Zettelkasten
-      deft zetteldeft avy ace-window
+      deft
     ];
   };
 in userEnv {

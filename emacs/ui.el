@@ -11,7 +11,7 @@
 (when (< (length command-line-args) 4)
   (require 'dashboard)
   ;; suppress "Cleaning up the recentf list...done" message
-  (cl-letf (((symbol-function 'message) (lambda (&rest _))))
+  (let ((inhibit-message t))
     (dashboard-insert-startupify-lists))
   (add-hook 'emacs-startup-hook
 	    #'(lambda ()

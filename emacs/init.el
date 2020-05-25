@@ -51,8 +51,6 @@
   (setq use-package-always-defer t)
   (require 'use-package))
 
-(require 'ryo-modal)
-
 ;;; Config
 (load-config "ui.el")
 (load-config "zettel.el")
