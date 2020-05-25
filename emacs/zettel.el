@@ -51,7 +51,17 @@
 (defun org-zettel-store-link ()
   "Store a link to a zettel note."
   (when zettelkasten-mode
-    (error "Unimplemented")))
+    (let* ((basename (file-name-base (buffer-file-name)))
+	   (zettel-id (progn
+			(string-match "^[0-9\-]*" basename)
+			(match-string 0 basename)))
+	   (zettel-title (progn
+			   (string-match "\\(?:^[0-9\-]*\\) \\(?1:.*\\)$" basename)
+			   (match-string 1 basename))))
+      (org-store-link-props
+       :type "zettel"
+       :link (concat "zettel:" zettel-id)
+       :description zettel-title))))
 
 ;; Helper functions
 
@@ -60,5 +70,6 @@
   (interactive "sTitle: ")
   (let* ((zettel-id (format-time-string zettel-id-format))
 	 (filename (concat zettel-id " " title)))
-    (deft-new-file-named filename)))
+    (deft-new-file-named filename)
+    filename))
   
