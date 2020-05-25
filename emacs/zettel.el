@@ -160,7 +160,7 @@ cache for this function to work."
 (defun zettel--filter-string (string &optional files filenames)
   "Filter files with a string. Files must be in the deft
 cache for this function to work."
-  (zettel--filter (regexp-quote string) files filenames))
+  (zettel--filter `(,(regexp-quote string)) files filenames))
 
 (defun zettel--filter-tag (tag &optional files)
   "Filter files by tag. Files must be in the deft cache for this
@@ -186,4 +186,19 @@ cache for this function to work."
 				      zettel--all-tags-separators)))
 	  (setq tags (append tags new-tags)))))
     tags))
-  
+
+(defconst zettel--forward-links-regexp "zettel:\\(?1:[0-9\-]+\\)")
+
+(defun zettel--get-forwardlinks ()
+  "Gets the forwardlinks from the current buffer's zettelkasten
+note."
+  (let ((forward-links '()))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward zettel--forward-links-regexp nil t)
+	(push (match-string-no-properties 1) forward-links)))
+    forward-links))
+
+(defun zettel--get-backlinks ()
+  "Gets the backlinks to the current buffer's zettelkasten note."
+  (zettel--filter-forwardlink (buffer-file-name)))
