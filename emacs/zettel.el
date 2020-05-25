@@ -24,8 +24,11 @@
   (when (string= default-directory zettel-dir)
     (zettelkasten-mode 1)))
 
-;; Org links
+;; Org zettel:* links
 
+;; TODO: Implement :export
+;; TODO: Implement :face
+;; TODO: Evaluate implementing :complete
 (org-link-set-parameters "zettel"
                          :follow #'org-zettel-follow-link
                          :store #'org-zettel-store-link)
