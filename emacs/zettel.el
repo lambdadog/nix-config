@@ -11,7 +11,8 @@
 	     deft-new-file-named)
   :custom
   (deft-extensions '("org"))
-  (deft-directory zettel-dir))
+  (deft-directory zettel-dir)
+  (deft-use-filename-as-title t))
 
 ;; We need a minor mode so that we can create ryo-modal bindings for
 ;; working with my zettelkasten.
@@ -45,36 +46,96 @@
   "Follow a zettel: link in org-mode."
   (unless (get-buffer "*Deft*")
     (zettel--deft-init-in-background))
-  (let ((deft-filter-only-filenames t))
-    (deft-filter id t))
-  (unless (eq (length deft-current-files) 1)
-    (user-error "ID Error. Either no or multiple zettelkasten notes found with ID %s" id))
-  (deft-open-file (car deft-current-files)))
+  (let ((files (let ((deft-filter-regexp `(,id))
+		     (deft-filter-only-filenames t))
+		 (deft-filter-files deft-all-files))))
+    (unless (eq (length files) 1)
+      (user-error "ID Error. Either no or multiple zettelkasten notes found with ID %s" id))
+    (deft-open-file (car files))))
 
 (defun org-zettel-store-link ()
   "Store a link to a zettel note."
   (when zettelkasten-mode
-    (let* ((basename (file-name-base (buffer-file-name)))
-	   (zettel-id (progn
-			(string-match "^[0-9\-]*" basename)
-			(match-string 0 basename)))
-	   (zettel-title (progn
-			   (string-match "\\(?:^[0-9\-]*\\) \\(?1:.*\\)$" basename)
-			   (match-string 1 basename))))
+    (let ((zettel-info (zettel--id-and-title (buffer-file-name))))
       (org-store-link-props
        :type "zettel"
-       :link (concat "zettel:" zettel-id)
-       :description zettel-title))))
+       :link (concat "zettel:" (car zettel-info))
+       :description (cdr zettel-info)))))
 
-;; Helper functions
+;; User-facing functions
 
-(defun zettel-new-note (title)
+(defun zettel--new-note (title)
   "Create a new zettelkasten note."
-  (interactive "sTitle: ")
   (let* ((zettel-id (format-time-string zettel-id-format))
 	 (filename (concat zettel-id " " title)))
     (deft-new-file-named filename)
     (insert (concat "#+TITLE: " title "\n"
 		    "#+TAGS: "))
     filename))
-  
+
+(defun zettel-new-public-note (title)
+  "Create a new private zettelkasten note."
+  (interactive "sTitle: ")
+  (let ((filename (zettel-new-note title)))
+    (insert "#public ")
+    filename))
+
+(defun zettel-new-private-note (title)
+  "Create a new private zettelkasten note."
+  (interactive "sTitle: ")
+  (let ((filename (zettel-new-note title)))
+    (insert "#private ")
+    filename))
+
+(defun zettel-post-to-blog (&optional note)
+  "Post this zettelkasten note as a blog post."
+  (interactive)
+  (let* ((note (if zettelkasten-mode
+		  (buffer-file-name)
+		 note))
+	 (zettel-id (car (zettel--id-and-title note))))
+    ;; Write to a blog.txt file with date, I guess?
+    (error "Unimplemented")))
+    
+(defun zettel-publish-blog ()
+  "Publish my blog."
+  (interactive)
+  (error "Unimplemented"))
+
+;; Internal
+
+(defconst zettel--private-regexp "#\\+TAGS:.+?#private.*\n")
+(defconst zettel--public-regexp "#\\+TAGS:.+?#public.*\n")
+
+;; TODO: Deft assumes that files have been opened with it to hook
+;; saves to update its cache. Either fix the root problem by adding a
+;; hook to zettelkasten-mode or update cache inside zettel--validate.
+(defun zettel--validate ()
+  "Validate my zettelkasten to ensure that no public notes
+forward-link to private notes."
+  (let ((private-id-regexp (regexp-opt
+			    (let ((files (let ((deft-filter-regexp `(,zettel--private-regexp))
+					       (deft-incremental-search nil))
+					   (deft-filter-files deft-all-files))))
+			      (mapcar #'zettel--validate--note-to-link-format files))))
+	(public-notes (let ((deft-filter-regexp `(,zettel--public-regexp))
+			    (deft-incremental-search nil))
+			(deft-filter-files deft-all-files))))
+    (let ((matches
+	   (let ((deft-filter-regexp `(,private-id-regexp))
+		 (deft-incremental-search nil))
+	     (deft-filter-files public-notes))))
+      (if (> (length matches) 0)
+	  (progn
+	    (message "Zettelkasten has links from public to private notes")
+	    matches)
+	matches))))
+
+(defun zettel--validate--note-to-link-format (note)
+  (let ((id (car (zettel--id-and-title note))))
+    (concat "[[zettel:" id "]")))
+
+(defun zettel--id-and-title (note)
+  (let ((basename (file-name-base note)))
+    (string-match "^\\(?1:[0-9\-]*\\) \\(?2:.*\\)$" basename)
+    `(,(match-string 1 basename) . ,(match-string 2 basename))))
