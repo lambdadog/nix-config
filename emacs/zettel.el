@@ -35,6 +35,8 @@
                          :store #'org-zettel-store-link)
 
 (defun zettel--deft-init-in-background ()
+  "Initialize deft in the background if it's required before
+~deft-mode~ has been called."
   (message "Initializing deft...")
   (with-current-buffer (get-buffer-create "*Deft*")
     (if (not (eq major-mode 'deft-mode))
@@ -46,9 +48,7 @@
   "Follow a zettel: link in org-mode."
   (unless (get-buffer "*Deft*")
     (zettel--deft-init-in-background))
-  (let ((files (let ((deft-filter-regexp `(,id))
-		     (deft-filter-only-filenames t))
-		 (deft-filter-files deft-all-files))))
+  (let ((files (zettel--filter-string id nil t)))
     (unless (eq (length files) 1)
       (user-error "ID Error. Either no or multiple zettelkasten notes found with ID %s" id))
     (deft-open-file (car files))))
@@ -104,8 +104,14 @@
 
 ;; Internal
 
-(defconst zettel--private-regexp "#\\+TAGS:.+?#private.*\n")
-(defconst zettel--public-regexp "#\\+TAGS:.+?#public.*\n")
+(defconst zettel--tag-regexp-format-string "#\\+TAGS:.*? \\(?:#?\\)%s[ \n]"
+  "Format string for converting a tag to a regexp that matches
+  the tag. Can accept both non-prefixed and #-prefixed tags.")
+
+(defun zettel--tag-regexp (tag)
+  "Takes a tag (without #) and returns a regexp matching it in a
+zettelkasten note."
+  (format zettel--tag-regexp-format-string (regexp-quote tag)))
 
 ;; TODO: Deft assumes that files have been opened with it to hook
 ;; saves to update its cache. Either fix the root problem by adding a
@@ -114,28 +120,70 @@
   "Validate my zettelkasten to ensure that no public notes
 forward-link to private notes."
   (let ((private-id-regexp (regexp-opt
-			    (let ((files (let ((deft-filter-regexp `(,zettel--private-regexp))
-					       (deft-incremental-search nil))
-					   (deft-filter-files deft-all-files))))
-			      (mapcar #'zettel--validate--note-to-link-format files))))
-	(public-notes (let ((deft-filter-regexp `(,zettel--public-regexp))
-			    (deft-incremental-search nil))
-			(deft-filter-files deft-all-files))))
-    (let ((matches
-	   (let ((deft-filter-regexp `(,private-id-regexp))
-		 (deft-incremental-search nil))
-	     (deft-filter-files public-notes))))
+			    (mapcar #'zettel--note-to-link-format
+				    (zettel--filter-tag "private"))))
+	(public-notes (zettel--filter-tag "public")))
+    (let ((matches (zettel--filter-regexp private-id-regexp
+					  public-notes)))
       (if (> (length matches) 0)
 	  (progn
 	    (message "Zettelkasten has links from public to private notes")
 	    matches)
 	matches))))
 
-(defun zettel--validate--note-to-link-format (note)
+(defun zettel--note-to-link-format (note)
+  "Format note ID to a link string that can be searched for."
   (let ((id (car (zettel--id-and-title note))))
-    (concat "[[zettel:" id "]")))
+    (concat "zettel:" id)))
 
 (defun zettel--id-and-title (note)
+  "Returns the ID and title of a note (must be passed by
+filepath)."
   (let ((basename (file-name-base note)))
     (string-match "^\\(?1:[0-9\-]*\\) \\(?2:.*\\)$" basename)
-    `(,(match-string 1 basename) . ,(match-string 2 basename))))
+    `(,(match-string-no-properties 1 basename) . ,(match-string-no-properties 2 basename))))
+
+(defun zettel--filter (regexps &optional files filenames)
+  "Filter files with a list of regexps. Files must be in the deft
+cache for this function to work."
+  (let ((deft-filter-regexp regexps)
+	(deft-filter-only-filenames filenames)
+	(deft-incremental-search nil))
+    (deft-filter-files (if files files
+			 deft-all-files))))
+
+(defun zettel--filter-regexp (regexp &optional files filenames)
+  "Filter files with a regexp. Files must be in the deft
+cache for this function to work."
+  (zettel--filter `(,regexp) files filenames))
+
+(defun zettel--filter-string (string &optional files filenames)
+  "Filter files with a string. Files must be in the deft
+cache for this function to work."
+  (zettel--filter (regexp-quote string) files filenames))
+
+(defun zettel--filter-tag (tag &optional files)
+  "Filter files by tag. Files must be in the deft cache for this
+function to work."
+  (zettel--filter `(,(zettel--tag-regexp tag)) files))
+
+(defun zettel--filter-forwardlink (note &optional files)
+  "Filter files by forward-link. Takes the path to the note you
+wish to look for forward-links to. Files must be in the deft
+cache for this function to work."
+  (zettel--filter `(,(zettel--note-to-link-format note)) files))
+
+(defconst zettel--all-tags-regexp "#\\+TAGS: \\(?:#?\\)\\(?1:.*\\)\n")
+(defconst zettel--all-tags-separators " \\(?:#?\\)")
+
+(defun zettel--get-tags ()
+  "Gets the tags from the current buffer's zettelkasten note."
+  (let ((tags '()))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward zettel--all-tags-regexp nil t)
+        (let ((new-tags (split-string (match-string-no-properties 1)
+				      zettel--all-tags-separators)))
+	  (setq tags (append tags new-tags)))))
+    tags))
+  
