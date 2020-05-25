@@ -7,11 +7,11 @@
 
 (use-package deft
   :bind ("C-c d" . deft)
-  :commands (deft-mode)
+  :commands (deft-mode
+	     deft-new-file-named)
   :custom
   (deft-extensions '("org"))
-  (deft-directory zettel-dir)
-  (deft-use-filename-as-title t))
+  (deft-directory zettel-dir))
 
 ;; We need a minor mode so that we can create ryo-modal bindings for
 ;; working with my zettelkasten.
@@ -74,5 +74,7 @@
   (let* ((zettel-id (format-time-string zettel-id-format))
 	 (filename (concat zettel-id " " title)))
     (deft-new-file-named filename)
+    (insert (concat "#+TITLE: " title "\n"
+		    "#+TAGS: "))
     filename))
   
