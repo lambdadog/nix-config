@@ -14,6 +14,20 @@
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 
+;; Set the font quickly as well!
+(set-face-attribute 'default nil
+		    :font "Input Mono"
+		    :weight 'light
+		    :height 105)
+
+(set-face-attribute 'variable-pitch nil
+		    :font "Input Serif"
+		    :weight 'light
+		    :height 105)
+
+(add-hook 'prog-mode-hook
+	  #'variable-pitch-mode)
+
 ;; Neuter package.el
 (setq package-enable-at-startup nil)
 
@@ -51,6 +65,13 @@
   (setq use-package-always-defer t)
   (require 'use-package))
 
+(pinentry-start)
+
 ;;; Config
 (load-config "ui.el")
-(load-config "zettel.el")
+
+;; ;;; Extra config
+;; ;;  for non-persistent things
+;; (let ((extra-config (expand-file-name "~/.ae.el")))
+;;   (when (file-exists-p extra-config)
+;;     (load extra-config nil t t)))

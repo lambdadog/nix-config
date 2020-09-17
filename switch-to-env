@@ -1,0 +1,9 @@
+#!/bin/sh
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+OUTPATH="$(nix-build --attr user-env --no-out-link "${DIR}")"
+
+${OUTPATH}/bin/install-user-environment
+
+echo "${OUTPATH}"

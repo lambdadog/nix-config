@@ -5,7 +5,9 @@
   :commands (dashboard-insert-startupify-lists)
   :custom
   (dashboard-set-init-info nil)
-  (dashboard-set-footer nil))
+  (dashboard-set-footer nil)
+  (dashboard-page-separator "\n\n")
+  (dashboard-center-content t))
 
 ;; 4 instead of 2 because we launch emacs with --load file already
 (when (< (length command-line-args) 4)
