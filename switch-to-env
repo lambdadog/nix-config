@@ -1,9 +1,10 @@
 #!/bin/sh
 
+# Get the script's directory so it can be called from anywhere
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+# Build, then switch to config
 OUTPATH="$(nix-build --attr user-env --no-out-link "${DIR}")"
-
 ${OUTPATH}/bin/install-user-environment
 
 echo "${OUTPATH}"
