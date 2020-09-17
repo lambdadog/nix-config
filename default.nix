@@ -2,22 +2,25 @@ let nixpkgs = fetchTarball {
       url = "https://github.com/NixOS/nixpkgs/archive/release-20.03.tar.gz";
       sha256 = "1sgfyxi4wckivnbniwmg4l6n9v5z6v53c5467d7k7pr2h6nwssfn";
     };
+    emacs-overlay = import (fetchTarball {
+      url = "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz";
+    });
+    personal-overlay = (import (fetchTarball {
+      url = "https://github.com/lambdadog/nix-extra/archive/master.tar.gz";
+    }) { pkgs = import nixpkgs {}; }).overlay;
 in
 { pkgs ? import nixpkgs {
   config = {
     allowUnfree = true;
   };
   overlays = [
-    # Always grabs the latest emacs overlay
-    (import (builtins.fetchTarball {
-      url = https://github.com/nix-community/emacs-overlay/archive/master.tar.gz;
-    }))
+    emacs-overlay
+    personal-overlay
   ];
 }
 }:
 
 with pkgs;
-with callPackage ../devel/nix-extra {};
 
 let
   emacs = emacsWithConfig {
