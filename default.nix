@@ -5,17 +5,17 @@ let nixpkgs = fetchTarball {
     emacs-overlay = import (fetchTarball {
       url = "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz";
     });
-    personal-overlay = (import (fetchTarball {
-      url = "https://github.com/lambdadog/nix-extra/archive/master.tar.gz";
-    }) { pkgs = import nixpkgs {}; }).overlay;
 in
-{ pkgs ? import nixpkgs {
+{ nix-extra ? fetchTarball {
+  url = "https://github.com/lambdadog/nix-extra/archive/master.tar.gz";
+}
+, pkgs ? import nixpkgs {
   config = {
     allowUnfree = true;
   };
   overlays = [
     emacs-overlay
-    personal-overlay
+    ((import nixpkgs {}).callPackage nix-extra {}).overlay
   ];
 }
 }:
