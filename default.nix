@@ -1,6 +1,6 @@
 let nixpkgs = fetchTarball {
       url = "https://github.com/NixOS/nixpkgs/archive/release-20.03.tar.gz";
-      sha256 = "1sgfyxi4wckivnbniwmg4l6n9v5z6v53c5467d7k7pr2h6nwssfn";
+      sha256 = "15fzr98ymm64j9wc7slcrlikzgxq3znrmn6mnkz5kks01s9fff8q";
     };
     emacs-overlay = import (fetchTarball {
       url = "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz";
@@ -46,6 +46,10 @@ let
       # Zettelkasten
       deft
     ];
+
+    extraDependencies = [
+      imagemagickBig ispell
+    ];
   };
 in {
   inherit emacs;
@@ -54,7 +58,7 @@ in {
     
     packages = [
       # Emacs config
-      (hiPrio emacs) imagemagickBig
+      (hiPrio emacs)
 
       # GUI
       steam lutris flameshot
