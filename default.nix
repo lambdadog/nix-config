@@ -1,6 +1,6 @@
 let nixpkgs = fetchTarball {
       url = "https://github.com/NixOS/nixpkgs/archive/release-20.03.tar.gz";
-      sha256 = "15fzr98ymm64j9wc7slcrlikzgxq3znrmn6mnkz5kks01s9fff8q";
+      sha256 = "1cih83nzdqyfgnxvvqav9313rjari5kn20h4ff0y74bjinms6kf6";
     };
     emacs-overlay = import (fetchTarball {
       url = "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz";
@@ -22,7 +22,8 @@ in
 
 with pkgs;
 
-let
+rec {
+  substudy = callPackage ./pkgs/substudy {};
   emacs = emacsWithConfig {
     config = ./emacs;
 
@@ -37,7 +38,7 @@ let
       
       # Major modes
       nix-mode haskell-mode yaml-mode
-      markdown-mode
+      markdown-mode lua-mode
 
       # Util
       magit deadgrep use-package hydra
@@ -51,8 +52,6 @@ let
       imagemagickBig ispell
     ];
   };
-in {
-  inherit emacs;
   user-env = userEnv {
     static = false;
     
@@ -65,6 +64,9 @@ in {
       transmission-gtk calibre xournal
       krita mpv obs-studio wasabiwallet
       zoom-us
+
+      # Language Learning
+      chromium anki substudy
 
       # CLI
       ffmpeg-full htop steam-run

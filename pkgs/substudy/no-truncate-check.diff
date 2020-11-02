@@ -1,0 +1,25 @@
+diff --git a/src/time.rs b/src/time.rs
+index bc62c8b..4c7ba07 100644
+--- a/src/time.rs
++++ b/src/time.rs
+@@ -179,13 +179,13 @@ impl Period {
+     /// Truncate this subtitle before `limit`, which must be at least
+     /// `2*MIN_SPACING` greater than the begin time.
+     pub fn end_before(&mut self, limit: f32) -> Result<()> {
+-        if limit < self.begin + 2.0 * MIN_SPACING {
+-            Err(format_err!(
+-                "Cannot truncate time period {:?} at {}",
+-                self,
+-                limit
+-            ))?;
+-        }
++        // if limit < self.begin + 2.0 * MIN_SPACING {
++        //     Err(format_err!(
++        //         "Cannot truncate time period {:?} at {}",
++        //         self,
++        //         limit
++        //     ))?;
++        // }
+ 
+         self.end = self.end.min(limit - MIN_SPACING);
+         Ok(())
